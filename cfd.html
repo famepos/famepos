@@ -361,7 +361,7 @@
       updateRow('cfd-sc-amount', 'cfd-sc-row', scAmount);
       updateRow('cfd-vat-amount', 'cfd-vat-row', vatAmount);
           
-      // 💳 โหมดจ่ายเงิน (นี่คือบรรทัดที่หายไปครับ!)
+     // 💳 โหมดจ่ายเงิน
       if (data.status === 'paying') {
           standardLayout.classList.add('hidden');
           fullPayment.classList.remove('hidden');
@@ -369,6 +369,11 @@
           const fullSubtotal = document.getElementById('full-subtotal');
           if(fullSubtotal) fullSubtotal.innerText = "฿" + gTotal.toFixed(2);
           document.getElementById('full-net-total').innerText = "฿" + (data.remaining || netTotal).toFixed(2);
+
+          // 🌟 สิ่งที่หายไป: เพิ่ม 3 บรรทัดนี้กลับเข้าไป เพื่อให้อัปเดต SC/VAT ในหน้าชำระเงินด้วย! 🌟
+          updateRow('full-discount', 'full-discount-row', discount);
+          updateRow('full-sc-amount', 'full-sc-row', scAmount);
+          updateRow('full-vat-amount', 'full-vat-row', vatAmount);
 
           const fullCash = document.getElementById('full-pay-cash');
           const fullQR = document.getElementById('full-pay-qr');
