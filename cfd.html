@@ -258,7 +258,7 @@
               if (data.ppNo) document.getElementById('full-qr-img').src = "https://promptpay.io/" + data.ppNo + "/" + qrAmount.toFixed(2) + ".png";
           } else {
               fullQR.classList.add('hidden'); fullCash.classList.remove('hidden');
-fullCash.innerHTML = `
+              fullCash.innerHTML = `
     <div class="text-7xl mb-4">💵</div>
     <h2 class="text-2xl font-bold text-gray-700 mb-4">สถานะการชำระเงิน</h2>
     
@@ -290,7 +290,7 @@ fullCash.innerHTML = `
           idleState.classList.remove('hidden'); cartItems.classList.add('hidden');
       } else {
           idleState.classList.add('hidden'); cartItems.classList.remove('hidden');
-         cartItems.innerHTML = data.cart.map(item => {
+          cartItems.innerHTML = data.cart.map(item => {
     // ดึงข้อมูลตัวเลือก/ท็อปปิ้งออกมา
     const optionsArray = item.options ? Object.values(item.options) : [];
     const optionsHtml = optionsArray.length > 0 
