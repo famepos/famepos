@@ -251,12 +251,33 @@
           if (data.method === 'เดลิเวอรี่' || (data.tableNo && isNaN(data.tableNo))) {
               fullQR.classList.add('hidden'); fullCash.classList.remove('hidden');
               fullCash.innerHTML = `<div class="text-8xl mb-4">🛵</div><h2 class="text-3xl font-bold text-orange-500 mb-2">${data.tableNo || 'เดลิเวอรี่'}</h2>`;
-          } else if (data.method.includes('สแกนจ่าย') || data.method === 'คนละครึ่ง' || data.method.includes('+')) {
-              fullCash.classList.add('hidden'); fullQR.classList.remove('hidden');
-              const qrAmount = data.remaining || data.netTotal;
-              document.getElementById('full-qr-amount').innerText = qrAmount.toFixed(2);
-              if (data.ppNo) document.getElementById('full-qr-img').src = "https://promptpay.io/" + data.ppNo + "/" + qrAmount.toFixed(2) + ".png";
-          } else {
+     // --- ส่วนที่แก้ไขใหม่ ---
+} else if (data.method === 'คนละครึ่ง') {
+    // กรณีเลือกคนละครึ่ง: แสดงข้อความแจ้งเตือนแทน QR Code
+    fullQR.classList.add('hidden'); 
+    fullCash.classList.remove('hidden');
+    fullCash.innerHTML = `
+        <div class="text-center p-8 bg-white rounded-[3rem] border-[10px] border-red-500 shadow-2xl animate-bounce">
+            <div class="text-7xl mb-4">📱</div>
+            <h2 class="text-4xl font-black text-red-600 mb-2">ช่องทางคนละครึ่ง</h2>
+            <p class="text-2xl font-bold text-gray-700">กรุณาชำระเงินผ่านแอป "เป๋าตัง"</p>
+            <p class="text-xl text-gray-500 mt-2">โดยสแกนกับเครื่องของพนักงานนะคะ</p>
+            <div class="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
+                <span class="text-gray-400 font-bold uppercase">ยอดที่ต้องสแกน</span>
+                <div class="text-6xl font-black text-gray-900">฿${(data.remaining || data.netTotal).toFixed(2)}</div>
+            </div>
+        </div>
+    `;
+} else if (data.method.includes('สแกนจ่าย') || data.method.includes('+')) {
+    // กรณีสแกนจ่ายปกติ: แสดง QR Code ตามเดิม
+    fullCash.classList.add('hidden'); 
+    fullQR.classList.remove('hidden');
+    const qrAmount = data.remaining || data.netTotal;
+    document.getElementById('full-qr-amount').innerText = qrAmount.toFixed(2);
+    if (data.ppNo) document.getElementById('full-qr-img').src = "https://promptpay.io/" + data.ppNo + "/" + qrAmount.toFixed(2) + ".png";
+} else {
+// --- จบส่วนที่แก้ไข ---
+
               fullQR.classList.add('hidden'); fullCash.classList.remove('hidden');
               fullCash.innerHTML = `
     <div class="text-7xl mb-4">💵</div>
