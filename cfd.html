@@ -11,14 +11,12 @@
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');
     body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; overflow: hidden; }
     
-    /* Custom Animations */
     .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     
     .animate-popup { animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
     @keyframes popUp { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
 
-    /* Beautiful Scrollbar */
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #fca5a5; border-radius: 20px; }
@@ -56,19 +54,31 @@
           <div class="bg-gray-50 p-8 md:p-12 w-full md:w-1/2 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-200 relative overflow-hidden">
               <div class="absolute -top-20 -right-20 w-48 h-48 bg-red-100 rounded-full blur-3xl opacity-60"></div>
               
-              <h3 class="text-gray-400 font-bold uppercase tracking-widest text-sm mb-6 flex items-center gap-2 relative z-10">
+              <h3 class="text-gray-400 font-bold uppercase tracking-widest text-sm mb-4 flex items-center gap-2 relative z-10">
                   <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> สรุปยอดชำระ
               </h3>
               
-              <div class="space-y-4 mb-8 relative z-10">
+              <div class="space-y-3 mb-6 relative z-10">
+                  <!-- 🌟 เพิ่มข้อมูลลูกค้า 🌟 -->
+                  <div id="full-customer-row" class="flex justify-between items-center bg-purple-50 p-3.5 rounded-2xl text-purple-600 font-bold text-lg hidden mb-4 border border-purple-100">
+                      <span class="flex items-center gap-2 text-purple-800">👤 <span id="full-customer-name">ลูกค้า</span></span>
+                      <span class="bg-purple-200 text-purple-800 px-3 py-1 rounded-xl shadow-sm text-sm"><span id="full-customer-points">0</span> แต้ม ⭐</span>
+                  </div>
+
                   <div class="flex justify-between text-gray-600 font-semibold text-lg"><span>ยอดรวมสินค้า:</span><span id="full-subtotal">฿0.00</span></div>
                   <div id="full-discount-row" class="flex justify-between text-red-500 font-bold text-lg hidden"><span>ส่วนลด:</span><span id="full-discount">-฿0.00</span></div>
                   <div id="full-sc-row" class="flex justify-between text-orange-500 font-bold text-lg hidden"><span id="full-sc-label">SC:</span><span id="full-sc-amount">฿0.00</span></div>
                   <div id="full-vat-row" class="flex justify-between text-blue-500 font-bold text-lg hidden"><span id="full-vat-label">VAT:</span><span id="full-vat-amount">฿0.00</span></div>
+                  
+                  <!-- 🌟 เพิ่มยอดที่รับเงินสดมาแล้ว (กรณีแยกชำระ) 🌟 -->
+                  <div id="full-split-cash-row" class="flex justify-between items-center text-green-700 font-bold text-lg hidden bg-green-50 p-4 rounded-2xl mt-4 border border-green-200 shadow-sm animate-fade-in">
+                      <span>💵 รับเงินสดมาแล้ว:</span>
+                      <span id="full-split-cash" class="text-2xl">฿0.00</span>
+                  </div>
               </div>
               
               <div class="border-t-2 border-dashed border-gray-300 pt-6 relative z-10">
-                  <span class="text-sm font-black text-gray-400 uppercase tracking-widest block mb-2">ยอดชำระสุทธิ</span>
+                  <span id="full-net-total-label" class="text-sm font-black text-gray-400 uppercase tracking-widest block mb-2">ยอดชำระสุทธิ</span>
                   <span class="text-5xl font-black text-red-600 leading-none tracking-tighter" id="full-net-total">฿0.00</span>
               </div>
           </div>
@@ -128,11 +138,16 @@
         <!-- ฝั่งสรุปยอดรวม -->
         <aside class="w-full lg:w-[420px] bg-white p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] lg:shadow-[-10px_0_40px_rgba(0,0,0,0.03)] flex flex-col justify-end relative z-20">
             <div class="bg-gradient-to-br from-red-600 to-rose-700 p-8 rounded-[2rem] shadow-[0_15px_30px_-10px_rgba(225,29,72,0.5)] text-white relative overflow-hidden">
-                <!-- แสงเงาตกแต่ง -->
                 <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-black/10 rounded-full blur-3xl"></div>
 
                 <div class="relative z-10">
+                    <!-- 🌟 ส่วนแสดงข้อมูลลูกค้าในหน้าปกติ 🌟 -->
+                    <div id="cfd-customer-row" class="flex justify-between items-center text-white text-sm font-bold hidden mb-4 pb-4 border-b border-white/20">
+                        <span id="cfd-customer-name" class="truncate max-w-[200px] text-lg">👤 ลูกค้า</span>
+                        <span class="bg-white/20 px-3 py-1 rounded-xl"><span id="cfd-customer-points">0</span> ⭐</span>
+                    </div>
+
                     <div class="flex justify-between text-red-100 text-sm font-bold uppercase mb-3 tracking-widest">
                         <span>ยอดรวม (Subtotal)</span>
                         <span id="cfd-subtotal">฿0.00</span>
@@ -172,7 +187,6 @@
   </div>
 
 <script>
-    // 🌟 1. ประกาศตัวแปร Global
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxqmIYIYrhEeAMvxFlDY3K4c0iRSXaUxFNrn-TUmouG-nRnmGyvDPocbsK4MGDVz_ZEBQ/exec";
     let lastDataJson = ""; 
     let idleTimeout = null; 
@@ -281,9 +295,47 @@
       const netTotal = data.netTotal || 0;
       const hasExtraFees = discount > 0 || scAmount > 0 || vatAmount > 0;
 
-      // อัปเดตตัวเลข
+      // 🌟 จัดการแสดงข้อมูลลูกค้า 🌟
+      const fullCustRow = document.getElementById('full-customer-row');
+      const cfdCustRow = document.getElementById('cfd-customer-row');
+      if (data.customerName) {
+          if (fullCustRow) {
+              fullCustRow.classList.remove('hidden');
+              document.getElementById('full-customer-name').innerText = data.customerName;
+              document.getElementById('full-customer-points').innerText = (data.customerPoints || 0).toLocaleString();
+          }
+          if (cfdCustRow) {
+              cfdCustRow.classList.remove('hidden');
+              cfdCustRow.classList.add('flex');
+              document.getElementById('cfd-customer-name').innerText = "👤 " + data.customerName;
+              document.getElementById('cfd-customer-points').innerText = (data.customerPoints || 0).toLocaleString();
+          }
+      } else {
+          if (fullCustRow) fullCustRow.classList.add('hidden');
+          if (cfdCustRow) {
+              cfdCustRow.classList.add('hidden');
+              cfdCustRow.classList.remove('flex');
+          }
+      }
+
+      // 🌟 จัดการแสดง ยอดแยกจ่าย (เงินสด) 🌟
+      const fullSplitRow = document.getElementById('full-split-cash-row');
+      const netTotalLabel = document.getElementById('full-net-total-label');
+      
+      if (data.isSplitPayment && data.splitCashAmount > 0) {
+          if (fullSplitRow) {
+              fullSplitRow.classList.remove('hidden');
+              document.getElementById('full-split-cash').innerText = "฿" + data.splitCashAmount.toFixed(2);
+          }
+          if (netTotalLabel) netTotalLabel.innerText = "ยอดคงเหลือ (ที่ต้องโอน)";
+      } else {
+          if (fullSplitRow) fullSplitRow.classList.add('hidden');
+          if (netTotalLabel) netTotalLabel.innerText = "ยอดชำระสุทธิ";
+      }
+
+      // อัปเดตตัวเลขอื่นๆ
       document.getElementById('cfd-subtotal').innerText = "฿" + gTotal.toFixed(2);
-      document.getElementById('cfd-net-total').innerText = "฿" + netTotal.toFixed(2);
+      document.getElementById('cfd-net-total').innerText = "฿" + (data.remaining || netTotal).toFixed(2);
       
       const updateRow = (id, rowId, val, label = "") => {
           const el = document.getElementById(id);
@@ -304,25 +356,22 @@
           fullPayment.classList.remove('hidden');
           
           const fullSubtotal = document.getElementById('full-subtotal');
-          const slipBox = fullSubtotal ? fullSubtotal.closest('.space-y-4') : null;
-          // Show extra rows if needed
+          
           updateRow('full-discount', 'full-discount-row', discount);
           updateRow('full-sc-amount', 'full-sc-row', scAmount);
           updateRow('full-vat-amount', 'full-vat-row', vatAmount);
           
           if(fullSubtotal) fullSubtotal.innerText = "฿" + gTotal.toFixed(2);
-          document.getElementById('full-net-total').innerText = "฿" + netTotal.toFixed(2);
+          document.getElementById('full-net-total').innerText = "฿" + (data.remaining || netTotal).toFixed(2);
 
           const fullCash = document.getElementById('full-pay-cash');
           const fullQR = document.getElementById('full-pay-qr');
 
           if (data.method === 'เดลิเวอรี่' || (data.tableNo && isNaN(data.tableNo))) {
-              // โหมดเดลิเวอรี่
               fullQR.classList.add('hidden'); fullCash.classList.remove('hidden');
               fullCash.innerHTML = `<div class="text-8xl mb-6">🛵</div><h2 class="text-4xl font-black text-orange-500 mb-2">${data.tableNo || 'เดลิเวอรี่'}</h2><p class="text-gray-400 font-bold">กำลังดำเนินการ...</p>`;
           } 
           else if (data.method === 'คนละครึ่ง') {
-              // โหมดคนละครึ่ง
               fullQR.classList.add('hidden'); 
               fullCash.classList.remove('hidden');
               fullCash.innerHTML = `
@@ -339,8 +388,7 @@
                   </div>
               `;
           } 
-          else if (data.method.includes('สแกนจ่าย') || data.method.includes('+')) {
-              // โหมดสแกนจ่ายปกติ
+          else if (data.method.includes('สแกนจ่าย') || data.method.includes('+') || data.isSplitPayment) {
               fullCash.classList.add('hidden'); 
               fullQR.classList.remove('hidden');
               const qrAmount = data.remaining || data.netTotal;
@@ -348,7 +396,6 @@
               if (data.ppNo) document.getElementById('full-qr-img').src = "https://promptpay.io/" + data.ppNo + "/" + qrAmount.toFixed(2) + ".png";
           } 
           else {
-              // โหมดเงินสด
               fullQR.classList.add('hidden'); fullCash.classList.remove('hidden');
               fullCash.innerHTML = `
               <div class="text-center w-full">
@@ -376,7 +423,6 @@
               `;
           }
       } else {
-          // โหมดดูตะกร้าปกติ
           fullPayment.classList.add('hidden'); 
           standardLayout.classList.remove('hidden');
       }
