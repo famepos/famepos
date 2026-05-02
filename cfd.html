@@ -318,7 +318,6 @@
           }
       }
 
-      // 🌟 จัดการแสดง ยอดแยกจ่าย (เงินสด) 🌟
       // 🌟 จัดการแสดง ยอดแยกจ่ายที่รับมาแล้ว 🌟
       const fullSplitRow = document.getElementById('full-split-cash-row');
       const netTotalLabel = document.getElementById('full-net-total-label');
@@ -326,7 +325,6 @@
       if (data.isSplitPayment && data.splitAmount1 > 0) {
           if (fullSplitRow) {
               fullSplitRow.classList.remove('hidden');
-              // เปลี่ยนไอคอนและข้อความตามวิธีที่กด
               let icon = data.splitMethod1 === 'เงินสด' ? '💵' : '📱';
               document.getElementById('full-split-label').innerText = `${icon} รับแล้ว (${data.splitMethod1}):`;
               document.getElementById('full-split-cash').innerText = "฿" + data.splitAmount1.toFixed(2);
@@ -337,7 +335,7 @@
           if (netTotalLabel) netTotalLabel.innerText = "ยอดชำระสุทธิ (Net Total)";
       }
 
-// 🌟 เพิ่มการดึงเปอร์เซ็นต์ SC และ VAT มาแสดงผล 🌟
+      // 🌟 เพิ่มการดึงเปอร์เซ็นต์ SC และ VAT มาแสดงผล 🌟
       const scRateTxt = data.svcRate > 0 ? ` (${data.svcRate}%)` : "";
       const vatRateTxt = data.vatRate > 0 ? ` (${data.vatRate}%)` : "";
 
@@ -363,6 +361,12 @@
       updateRow('cfd-sc-amount', 'cfd-sc-row', scAmount);
       updateRow('cfd-vat-amount', 'cfd-vat-row', vatAmount);
           
+      // 💳 โหมดจ่ายเงิน (นี่คือบรรทัดที่หายไปครับ!)
+      if (data.status === 'paying') {
+          standardLayout.classList.add('hidden');
+          fullPayment.classList.remove('hidden');
+          
+          const fullSubtotal = document.getElementById('full-subtotal');
           if(fullSubtotal) fullSubtotal.innerText = "฿" + gTotal.toFixed(2);
           document.getElementById('full-net-total').innerText = "฿" + (data.remaining || netTotal).toFixed(2);
 
