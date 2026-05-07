@@ -24,60 +24,55 @@
             <p class="text-[10px] text-green-600 uppercase font-black tracking-widest mb-1">สแกนสำเร็จ</p>
             <p id="barcode-result" class="text-2xl font-mono font-bold text-green-700"></p>
         </div>
-
-        <div class="mt-6 space-y-2">
-            <p class="text-[11px] text-gray-400 text-center leading-relaxed font-medium">
-                1. หากกล้องไม่ขึ้น ให้ตรวจสอบว่า "อนุญาต" การใช้กล้อง<br>
-                2. วางบาร์โค้ดให้อยู่ในกรอบ และมีแสงสว่างเพียงพอ<br>
-                3. <span class="text-red-500 font-bold">ห้ามใช้ผ่านแอป Line</span> ให้เปิดด้วย Chrome หรือ Safari
-            </p>
-        </div>
     </div>
 
     <script>
         const html5QrCode = new Html5Qrcode("reader");
+        
+        // 🌟 ปรับ Config ให้เหมาะกับ "บาร์โค้ดสินค้า (1D Barcode)" 
         const config = { 
-    fps: 25, // เพิ่มเฟรมเรตให้จับภาพไวขึ้น (เดิม 15-20)
-    qrbox: { width: 280, height: 150 }, // ปรับกรอบให้เหมาะกับ "บาร์โค้ด" (ทรงรี)
-    aspectRatio: 1.0,
-    experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true // ใช้เอนจินของระบบถ้ามือถือรองรับ
-    },
-    videoConstraints: {
-        facingMode: "environment",
-        // บังคับความละเอียดแบบ HD เพื่อให้เห็นเส้นถี่ชัดขึ้น
-        width: { min: 640, ideal: 1280, max: 1920 },
-        height: { min: 480, ideal: 720, max: 1080 },
-        focusMode: "continuous" // พยายามให้โฟกัสทำงานตลอดเวลา
-    }
-};
+            fps: 30, // เร่งความเร็วการจับภาพ (เฟรมเรต)
+            qrbox: { width: 280, height: 100 }, // ทรงผืนผ้าแคบๆ เหมาะกับบาร์โค้ดแท่ง
+            aspectRatio: 1.0,
+            formatsToSupport: [ 
+                Html5QrcodeSupportedFormats.EAN_13, // บาร์โค้ดสินค้าทั่วไป
+                Html5QrcodeSupportedFormats.EAN_8, 
+                Html5QrcodeSupportedFormats.CODE_128, 
+                Html5QrcodeSupportedFormats.UPC_A 
+            ],
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true // 🔥 สำคัญมาก: ดึงพลังกล้องมือถือมาใช้โดยตรง (ทำให้แสกนไวขึ้น 10 เท่า)
+            },
+            videoConstraints: {
+                facingMode: "environment",
+                focusMode: "continuous" // บังคับให้กล้องพยายามออโต้โฟกัสตลอดเวลา
+            }
+        };
 
         function initScanner() {
             const startBtn = document.getElementById('start-btn');
             startBtn.innerHTML = "⌛ กำลังโหลดกล้อง...";
             startBtn.disabled = true;
 
-            // เริ่มต้นสแกนโดยใช้กล้องหลัง (Environment)
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 config,
                 (decodedText) => {
                     // เมื่อสแกนติด
-                    startBtn.classList.add('hidden');
-                    document.getElementById('result-box').classList.remove('hidden');
-                    document.getElementById('barcode-result').innerText = decodedText;
-                    
-                    // ส่งข้อมูลกลับไปยัง POS
-                    if (window.opener) {
-                        window.opener.postMessage({ type: 'BARCODE_SCANNED', code: decodedText }, '*');
+                    html5QrCode.stop().then(() => {
+                        startBtn.classList.add('hidden');
+                        document.getElementById('result-box').classList.remove('hidden');
+                        document.getElementById('barcode-result').innerText = decodedText;
                         
-                        // เสียงแจ้งเตือนสั้นๆ (ถ้ามี)
-                        setTimeout(() => { window.close(); }, 700);
-                    }
+                        if (window.opener) {
+                            window.opener.postMessage({ type: 'BARCODE_SCANNED', code: decodedText }, '*');
+                            setTimeout(() => { window.close(); }, 600);
+                        }
+                    });
                 }
             ).catch(err => {
                 console.error(err);
-                alert("❌ เข้าถึงกล้องไม่ได้: กรุณาไปที่ 'การตั้งค่าเบราว์เซอร์' และอนุญาตให้เข้าถึงกล้องครับ");
+                alert("❌ เข้าถึงกล้องไม่ได้");
                 startBtn.innerHTML = "🚀 ลองใหม่อีกครั้ง";
                 startBtn.disabled = false;
             });
