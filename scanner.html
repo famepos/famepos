@@ -6,75 +6,68 @@
     <title>FamePOS Scanner</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* ซ่อน UI ส่วนเกินของไลบรารีเพื่อให้ดูสะอาดตา */
-        #reader__dashboard_section_swap_link, #reader__status_span { display: none !important; }
-        video { border-radius: 1rem; object-fit: cover !important; }
-    </style>
 </head>
-<body class="bg-black flex flex-col items-center justify-center min-h-screen p-4">
+<body class="bg-black flex flex-col items-center justify-center min-h-screen p-4 font-sans">
     <div class="w-full max-w-md bg-white rounded-[2.5rem] p-6 shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-lg font-black text-gray-800">📸 สแกนบาร์โค้ด</h1>
-            <button onclick="window.close()" class="text-gray-400 hover:text-red-500 text-2xl">✕</button>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-black text-gray-800">📸 สแกนสินค้า</h1>
+            <button onclick="window.close()" class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full text-gray-400 hover:text-red-500 transition">✕</button>
         </div>
         
-        <div id="reader" class="overflow-hidden rounded-2xl bg-gray-100 border-2 border-dashed border-gray-200"></div>
+        <div id="reader" class="overflow-hidden rounded-3xl bg-gray-50 border-2 border-dashed border-gray-200 relative min-h-[250px] flex items-center justify-center">
+            <button id="start-btn" onclick="initScanner()" class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-red-200 active:scale-95 transition-all">
+                🚀 กดเพื่อเริ่มเปิดกล้อง
+            </button>
+        </div>
         
-        <div id="loading-text" class="text-center py-10 text-gray-400 animate-pulse">
-            กำลังเปิดกล้อง...
+        <div id="result-box" class="mt-6 text-center p-4 bg-green-50 rounded-2xl hidden border-2 border-green-100">
+            <p class="text-[10px] text-green-600 uppercase font-black tracking-widest mb-1">สแกนสำเร็จ</p>
+            <p id="barcode-result" class="text-2xl font-mono font-bold text-green-700"></p>
         </div>
 
-        <div id="result-box" class="mt-4 text-center p-3 bg-green-50 rounded-2xl hidden">
-            <p class="text-[10px] text-green-600 uppercase font-black">สแกนสำเร็จ</p>
-            <p id="barcode-result" class="text-lg font-mono font-bold text-green-700"></p>
+        <div class="mt-6 space-y-2">
+            <p class="text-[11px] text-gray-400 text-center leading-relaxed font-medium">
+                1. หากกล้องไม่ขึ้น ให้ตรวจสอบว่า "อนุญาต" การใช้กล้อง<br>
+                2. วางบาร์โค้ดให้อยู่ในกรอบ และมีแสงสว่างเพียงพอ<br>
+                3. <span class="text-red-500 font-bold">ห้ามใช้ผ่านแอป Line</span> ให้เปิดด้วย Chrome หรือ Safari
+            </p>
         </div>
-
-        <p class="mt-4 text-[10px] text-gray-400 text-center leading-relaxed">
-            วางบาร์โค้ดให้อยู่ในกรอบสี่เหลี่ยม<br>
-            หากกล้องไม่ขึ้น โปรดตรวจสอบการอนุญาตสิทธิ์การใช้กล้อง
-        </p>
     </div>
 
     <script>
         const html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 15, qrbox: { width: 250, height: 150 } };
+        const config = { fps: 20, qrbox: { width: 250, height: 150 } };
 
-        // 🚀 เริ่มต้นสแกนด้วยการหา "กล้องหลัง" (Environment)
-        Html5Qrcode.getCameras().then(cameras => {
-            document.getElementById('loading-text').remove();
-            
-            if (cameras && cameras.length > 0) {
-                // พยายามใช้กล้องตัวสุดท้าย (มักจะเป็นกล้องหลังตัวหลัก)
-                const cameraId = cameras[cameras.length - 1].id;
-                
-                html5QrCode.start(
-                    { facingMode: "environment" }, // บังคับใช้กล้องหลัง
-                    config,
-                    (decodedText) => {
-                        // เมื่อสแกนติด
-                        html5QrCode.stop().then(() => {
-                            document.getElementById('result-box').classList.remove('hidden');
-                            document.getElementById('barcode-result').innerText = decodedText;
-                            
-                            if (window.opener) {
-                                window.opener.postMessage({ type: 'BARCODE_SCANNED', code: decodedText }, '*');
-                                setTimeout(() => { window.close(); }, 600);
-                            }
-                        });
+        function initScanner() {
+            const startBtn = document.getElementById('start-btn');
+            startBtn.innerHTML = "⌛ กำลังโหลดกล้อง...";
+            startBtn.disabled = true;
+
+            // เริ่มต้นสแกนโดยใช้กล้องหลัง (Environment)
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config,
+                (decodedText) => {
+                    // เมื่อสแกนติด
+                    startBtn.classList.add('hidden');
+                    document.getElementById('result-box').classList.remove('hidden');
+                    document.getElementById('barcode-result').innerText = decodedText;
+                    
+                    // ส่งข้อมูลกลับไปยัง POS
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'BARCODE_SCANNED', code: decodedText }, '*');
+                        
+                        // เสียงแจ้งเตือนสั้นๆ (ถ้ามี)
+                        setTimeout(() => { window.close(); }, 700);
                     }
-                ).catch(err => {
-                    alert("ไม่สามารถเข้าถึงกล้องได้: " + err);
-                    window.close();
-                });
-            } else {
-                alert("ไม่พบกล้องในอุปกรณ์นี้");
-                window.close();
-            }
-        }).catch(err => {
-            alert("เกิดข้อผิดพลาดในการโหลดกล้อง: " + err);
-            window.close();
-        });
+                }
+            ).catch(err => {
+                console.error(err);
+                alert("❌ เข้าถึงกล้องไม่ได้: กรุณาไปที่ 'การตั้งค่าเบราว์เซอร์' และอนุญาตให้เข้าถึงกล้องครับ");
+                startBtn.innerHTML = "🚀 ลองใหม่อีกครั้ง";
+                startBtn.disabled = false;
+            });
+        }
     </script>
 </body>
 </html>
