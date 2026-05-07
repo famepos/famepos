@@ -1,99 +1,58 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>สแกนบาร์โค้ด</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    body { margin: 0; background: #111; color: white; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    #reader { flex: 1; width: 100%; background: #000; display: flex; justify-content: center; align-items: center; }
-    .header { padding: 15px; text-align: center; font-weight: bold; font-size: 18px; background: #222; color: #10b981; }
-    .controls { display: flex; padding: 10px; gap: 10px; background: #222; padding-bottom: 25px; }
-    .btn { flex: 1; padding: 15px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; }
-    .btn-switch { background: #3b82f6; color: white; display: none; }
-    .btn-close { background: #ef4444; color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FamePOS Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="header">📷 สแกนบาร์โค้ดสินค้า</div>
-  
-  <div id="reader"></div>
-  
-  <div class="controls">
-    <button id="btn-switch" class="btn btn-switch" onclick="switchCamera()">🔄 สลับกล้อง</button>
-    <button class="btn btn-close" onclick="window.close()">❌ ปิดหน้าต่าง</button>
-  </div>
-
-  <script>
-    let html5QrCode;
-    let availableCameras = [];
-    let currentCameraIndex = 0;
-
-    // 🔥 เปิดโหมดเทอร์โบ และตั้งค่าการสแกน
-const config = {
-            fps: 10, // 🌟 ลดเฟรมเรตลงมาเพื่อให้กล้องมือถือมีเวลาโฟกัสภาพให้ชัด
-            qrbox: { width: 300, height: 150 }, // 🌟 ขยายกรอบให้กว้างขึ้นอีกนิด เผื่อสแกนติดตัวเลขขอบๆ
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true 
-            },
-            formatsToSupport: [ 
-                Html5QrcodeSupportedFormats.EAN_13,
-                Html5QrcodeSupportedFormats.EAN_8,
-                Html5QrcodeSupportedFormats.CODE_128,
-                Html5QrcodeSupportedFormats.CODE_39,
-                Html5QrcodeSupportedFormats.UPC_A,
-                Html5QrcodeSupportedFormats.UPC_E,
-                Html5QrcodeSupportedFormats.ITF,
-                Html5QrcodeSupportedFormats.QR_CODE 
-            ]
-        };
-
-    html5QrCode = new Html5Qrcode("reader");
-
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length > 0) {
-        availableCameras = devices;
+<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl">
+        <h1 class="text-xl font-bold text-center mb-4 text-gray-800">📸 สแกนบาร์โค้ดสินค้า</h1>
         
-        // หากล้องหลัง
-        let backCameraIndex = devices.findIndex(d => 
-          d.label.toLowerCase().includes('back') || 
-          d.label.toLowerCase().includes('environment')
-        );
-        if (backCameraIndex !== -1) currentCameraIndex = backCameraIndex;
+        <div id="reader" class="overflow-hidden rounded-2xl border-4 border-red-400"></div>
+        
+        <div id="result" class="mt-4 text-center p-3 bg-gray-100 rounded-xl hidden">
+            <p class="text-xs text-gray-400 uppercase font-bold">สแกนสำเร็จ</p>
+            <p id="barcode-result" class="text-lg font-mono font-bold text-red-600"></p>
+        </div>
 
-        if (devices.length > 1) {
-          document.getElementById('btn-switch').style.display = 'block';
+        <button onclick="window.close()" class="w-full mt-6 bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold hover:bg-gray-300 transition">
+            ยกเลิกและปิดหน้าต่าง
+        </button>
+    </div>
+
+    <script>
+        function onScanSuccess(decodedText) {
+            // หยุดการสแกนทันทีที่เจอ
+            html5QrcodeScanner.clear();
+            
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('barcode-result').innerText = decodedText;
+
+            // 🌟 ส่งข้อมูลกลับไปยังหน้าต่างหลัก (Main Window)
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'BARCODE_SCANNED',
+                    code: decodedText
+                }, '*');
+                
+                // ปิดหน้าต่างสแกนหลังจากส่งข้อมูลเสร็จ 0.5 วินาทีเพื่อให้คนเห็นเลข
+                setTimeout(() => { window.close(); }, 500);
+            } else {
+                alert("ไม่พบหน้าต่างหลัก กรุณากดปุ่มสแกนจากหน้า POS");
+                window.close();
+            }
         }
-        startScanner();
-      } else {
-        document.getElementById('reader').innerHTML = '<p style="text-align:center;">ไม่พบกล้องบนอุปกรณ์นี้</p>';
-      }
-    }).catch(err => {
-      document.getElementById('reader').innerHTML = '<p style="color:red; text-align:center;">กรุณาอนุญาตสิทธิ์กล้องบนเบราว์เซอร์</p>';
-    });
 
-    function startScanner() {
-      html5QrCode.start(
-        availableCameras[currentCameraIndex].id,
-        config,
-        (decodedText) => {
-          if (window.opener) {
-            window.opener.postMessage({ type: 'BARCODE_SCANNED', code: decodedText }, '*');
-          }
-          html5QrCode.stop().then(() => window.close());
-        }
-      ).catch(err => console.log(err));
-    }
-
-    function switchCamera() {
-      if (availableCameras.length > 1) {
-        html5QrCode.stop().then(() => {
-          currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
-          startScanner();
-        }).catch(err => console.error(err));
-      }
-    }
-  </script>
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+            fps: 20, 
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.0
+        });
+        
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
 </body>
 </html>
