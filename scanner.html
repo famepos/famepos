@@ -6,53 +6,75 @@
     <title>FamePOS Scanner</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ซ่อน UI ส่วนเกินของไลบรารีเพื่อให้ดูสะอาดตา */
+        #reader__dashboard_section_swap_link, #reader__status_span { display: none !important; }
+        video { border-radius: 1rem; object-fit: cover !important; }
+    </style>
 </head>
-<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl">
-        <h1 class="text-xl font-bold text-center mb-4 text-gray-800">📸 สแกนบาร์โค้ดสินค้า</h1>
+<body class="bg-black flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white rounded-[2.5rem] p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-lg font-black text-gray-800">📸 สแกนบาร์โค้ด</h1>
+            <button onclick="window.close()" class="text-gray-400 hover:text-red-500 text-2xl">✕</button>
+        </div>
         
-        <div id="reader" class="overflow-hidden rounded-2xl border-4 border-red-400"></div>
+        <div id="reader" class="overflow-hidden rounded-2xl bg-gray-100 border-2 border-dashed border-gray-200"></div>
         
-        <div id="result" class="mt-4 text-center p-3 bg-gray-100 rounded-xl hidden">
-            <p class="text-xs text-gray-400 uppercase font-bold">สแกนสำเร็จ</p>
-            <p id="barcode-result" class="text-lg font-mono font-bold text-red-600"></p>
+        <div id="loading-text" class="text-center py-10 text-gray-400 animate-pulse">
+            กำลังเปิดกล้อง...
         </div>
 
-        <button onclick="window.close()" class="w-full mt-6 bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold hover:bg-gray-300 transition">
-            ยกเลิกและปิดหน้าต่าง
-        </button>
+        <div id="result-box" class="mt-4 text-center p-3 bg-green-50 rounded-2xl hidden">
+            <p class="text-[10px] text-green-600 uppercase font-black">สแกนสำเร็จ</p>
+            <p id="barcode-result" class="text-lg font-mono font-bold text-green-700"></p>
+        </div>
+
+        <p class="mt-4 text-[10px] text-gray-400 text-center leading-relaxed">
+            วางบาร์โค้ดให้อยู่ในกรอบสี่เหลี่ยม<br>
+            หากกล้องไม่ขึ้น โปรดตรวจสอบการอนุญาตสิทธิ์การใช้กล้อง
+        </p>
     </div>
 
     <script>
-        function onScanSuccess(decodedText) {
-            // หยุดการสแกนทันทีที่เจอ
-            html5QrcodeScanner.clear();
-            
-            document.getElementById('result').classList.remove('hidden');
-            document.getElementById('barcode-result').innerText = decodedText;
+        const html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 15, qrbox: { width: 250, height: 150 } };
 
-            // 🌟 ส่งข้อมูลกลับไปยังหน้าต่างหลัก (Main Window)
-            if (window.opener) {
-                window.opener.postMessage({
-                    type: 'BARCODE_SCANNED',
-                    code: decodedText
-                }, '*');
+        // 🚀 เริ่มต้นสแกนด้วยการหา "กล้องหลัง" (Environment)
+        Html5Qrcode.getCameras().then(cameras => {
+            document.getElementById('loading-text').remove();
+            
+            if (cameras && cameras.length > 0) {
+                // พยายามใช้กล้องตัวสุดท้าย (มักจะเป็นกล้องหลังตัวหลัก)
+                const cameraId = cameras[cameras.length - 1].id;
                 
-                // ปิดหน้าต่างสแกนหลังจากส่งข้อมูลเสร็จ 0.5 วินาทีเพื่อให้คนเห็นเลข
-                setTimeout(() => { window.close(); }, 500);
+                html5QrCode.start(
+                    { facingMode: "environment" }, // บังคับใช้กล้องหลัง
+                    config,
+                    (decodedText) => {
+                        // เมื่อสแกนติด
+                        html5QrCode.stop().then(() => {
+                            document.getElementById('result-box').classList.remove('hidden');
+                            document.getElementById('barcode-result').innerText = decodedText;
+                            
+                            if (window.opener) {
+                                window.opener.postMessage({ type: 'BARCODE_SCANNED', code: decodedText }, '*');
+                                setTimeout(() => { window.close(); }, 600);
+                            }
+                        });
+                    }
+                ).catch(err => {
+                    alert("ไม่สามารถเข้าถึงกล้องได้: " + err);
+                    window.close();
+                });
             } else {
-                alert("ไม่พบหน้าต่างหลัก กรุณากดปุ่มสแกนจากหน้า POS");
+                alert("ไม่พบกล้องในอุปกรณ์นี้");
                 window.close();
             }
-        }
-
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-            fps: 20, 
-            qrbox: { width: 250, height: 150 },
-            aspectRatio: 1.0
+        }).catch(err => {
+            alert("เกิดข้อผิดพลาดในการโหลดกล้อง: " + err);
+            window.close();
         });
-        
-        html5QrcodeScanner.render(onScanSuccess);
     </script>
 </body>
 </html>
