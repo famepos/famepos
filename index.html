@@ -69,9 +69,6 @@
     <button onclick="launchApp()" id="btn-start" class="btn-launch">🚀 เข้าสู่ระบบร้านค้า</button>
   </div>
 
-  <div id="app-container">
-    <iframe id="famepos-frame" src="" allow="camera *; microphone *; clipboard-write *;"></iframe>
-  </div>
 
   <script>
     // 🌟 ลิงก์ Google Script ของคุณ
@@ -89,25 +86,17 @@
       }, 500);
     }, 1500);
 
-    // ฟังก์ชันเปิดแอปใน Iframe โดยไม่เปลี่ยน URL เว็บ
+// ฟังก์ชันเปิดแอป (เปลี่ยนเป็นการ Redirect หน้าเว็บเพื่อแก้ปัญหา Iframe ถูกบล็อก)
     function launchApp() {
-      const container = document.getElementById('app-container');
-      const frame = document.getElementById('famepos-frame');
       const btn = document.getElementById('btn-start');
 
       // 1. เปลี่ยนสถานะปุ่มเพื่อบอกให้ผู้ใช้รอ
-      btn.innerHTML = '⏳ กำลังดาวน์โหลดข้อมูล...';
+      btn.innerHTML = '⏳ กำลังเข้าสู่ระบบ...';
       btn.style.opacity = '0.7';
       btn.style.pointerEvents = 'none';
 
-      // 2. สั่งให้ Iframe โหลด URL ของ Google Script
-      frame.src = GOOGLE_SCRIPT_URL; 
-
-      // 3. เมื่อ Iframe โหลดข้อมูลเสร็จ ค่อยแสดงผลเต็มจอ
-      frame.onload = function() {
-        document.getElementById('main-screen').style.display = 'none';
-        container.style.display = 'block';
-      };
+      // 2. เด้งเปลี่ยนหน้าไปยัง Google Script โดยตรง (แก้ปัญหาเบราว์เซอร์บล็อก 100%)
+      window.location.href = GOOGLE_SCRIPT_URL; 
     }
   </script>
 
