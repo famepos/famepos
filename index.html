@@ -9,28 +9,45 @@
   <link rel="icon" type="image/png" href="https://i.postimg.cc/SxGCt9N2/logo.png">
   <link rel="apple-touch-icon" href="https://i.postimg.cc/SxGCt9N2/logo.png">
   <meta name="apple-mobile-web-app-title" content="FamePOS"> 
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes"> 
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
   <meta name="theme-color" content="#ef4444">
 
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body, html { 
+      margin: 0; padding: 0; height: 100%; width: 100%;
+      overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
 
-    /* Splash Screen */
-    #splash-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease-out; }
+    /* 🌟 Splash Screen */
+    #splash-screen {
+      position: fixed; inset: 0; background: #000;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.5s ease-out;
+    }
     .splash-container { text-align: center; animation: fade 1.2s ease-in-out; }
     .app-logo { width: 120px; border-radius: 25px; box-shadow: 0 10px 25px rgba(255, 77, 77, 0.3); margin-bottom: 20px; }
     h1 { color: white; font-size: 28px; margin: 0; letter-spacing: 2px; }
 
-    /* Main Screen */
-    #main-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; background-color: #fce4e4; opacity: 0; transition: opacity 0.5s; }
-    .btn-launch { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 16px 45px; border-radius: 50px; text-decoration: none; font-size: 18px; font-weight: bold; cursor: pointer; border: 2px solid #fff; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); transition: 0.3s; }
+    /* 🌟 หน้าหลัก (ก่อนกดเข้าแอป) */
+    #main-screen {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; background-color: #fce4e4; opacity: 0; transition: opacity 0.5s;
+    }
+    .btn-launch {
+      background: linear-gradient(135deg, #ef4444, #dc2626); color: white; 
+      padding: 16px 45px; border-radius: 50px; text-decoration: none; 
+      font-size: 18px; font-weight: bold; cursor: pointer; border: 2px solid #fff;
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); transition: 0.3s;
+    }
     .btn-launch:active { transform: scale(0.95); }
 
-    /* App Container (Iframe) */
-    #app-container { display: none; position: fixed; inset: 0; width: 100%; height: 100%; background: white; z-index: 5000; }
-    iframe { width: 100%; height: 100%; border: none; }
+    /* 🌟 ส่วนแสดงแอปจริง (Iframe) */
+    #app-container {
+      display: none; position: fixed; inset: 0; width: 100%; height: 100%;
+      background: white; z-index: 5000;
+    }
+    iframe { width: 100%; height: 100%; border: none; background: #fce4e4; }
 
     @keyframes fade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
@@ -53,10 +70,11 @@
   </div>
 
   <div id="app-container">
-    <iframe id="pos-iframe" src="" allow="camera; microphone; geolocation"></iframe>
+    <iframe id="famepos-frame" src="" allow="camera *; microphone *; clipboard-write *;"></iframe>
   </div>
 
   <script>
+    // 🌟 ลิงก์ Google Script ของคุณ
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqmIYIYrhEeAMvxFlDY3K4c0iRSXaUxFNrn-TUmouG-nRnmGyvDPocbsK4MGDVz_ZEBQ/exec";
 
     // จัดการ Splash Screen
@@ -71,21 +89,25 @@
       }, 500);
     }, 1500);
 
-    // แก้ไขฟังก์ชันให้โหลดผ่าน Iframe แทนการ Redirect
+    // ฟังก์ชันเปิดแอปใน Iframe โดยไม่เปลี่ยน URL เว็บ
     function launchApp() {
-      const btn = document.getElementById('btn-start');
       const container = document.getElementById('app-container');
-      const iframe = document.getElementById('pos-iframe');
+      const frame = document.getElementById('famepos-frame');
+      const btn = document.getElementById('btn-start');
 
-      btn.innerHTML = '⏳ กำลังเข้าสู่ระบบ...';
+      // 1. เปลี่ยนสถานะปุ่มเพื่อบอกให้ผู้ใช้รอ
+      btn.innerHTML = '⏳ กำลังดาวน์โหลดข้อมูล...';
       btn.style.opacity = '0.7';
       btn.style.pointerEvents = 'none';
 
-      // โหลด URL เข้าไปใน iframe
-      iframe.src = GOOGLE_SCRIPT_URL;
-      
-      // แสดง container
-      container.style.display = 'block';
+      // 2. สั่งให้ Iframe โหลด URL ของ Google Script
+      frame.src = GOOGLE_SCRIPT_URL; 
+
+      // 3. เมื่อ Iframe โหลดข้อมูลเสร็จ ค่อยแสดงผลเต็มจอ
+      frame.onload = function() {
+        document.getElementById('main-screen').style.display = 'none';
+        container.style.display = 'block';
+      };
     }
   </script>
 
